@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keyword Generator AI</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .topic-input {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        .topic-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .control-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .creativity-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .creativity-btn {
+            flex: 1;
+            padding: 8px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .creativity-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #667eea;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .results {
+            margin-top: 40px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .results-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .results-content {
+            border: 2px solid #667eea;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+            padding: 0;
+        }
+
+        .keyword-section {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .keyword-section:last-child {
+            border-bottom: none;
+        }
+
+        .keyword-category {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        .keyword-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .keyword-tag {
+            background: #f0f4ff;
+            color: #667eea;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            border: 1px solid #d4e0ff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .keyword-tag:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .ai-keywords {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 16px;
+        }
+
+        .loading:after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .error {
+            background: #ffe5e5;
+            color: #dc3545;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #ffcccc;
+        }
+
+        .copy-btn {
+            float: right;
+            padding: 6px 12px;
+            background: white;
+            color: #667eea;
+            border: 1px solid #667eea;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Keyword Generator AI</h1>
+            <p class="subtitle">Generate creative keywords and word suggestions powered by AI</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Describe Your Topic</div>
+            <textarea 
+                class="topic-input" 
+                id="topicInput" 
+                placeholder="Example: A modern AI-powered productivity app for remote teams that helps with task management and collaboration..."
+            ></textarea>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Generation Settings</div>
+            <div class="controls">
+                <div class="control-group">
+                    <label class="control-label">Creativity Level</label>
+                    <div class="creativity-buttons">
+                        <button class="creativity-btn" data-level="low">Low</button>
+                        <button class="creativity-btn" data-level="medium">Medium</button>
+                        <button class="creativity-btn active" data-level="high">High</button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">Web Search</label>
+                    <label class="switch">
+                        <input type="checkbox" id="webSearch" checked>
+                        <span class="slider"></span>
+                    </label>
+                    <span style="margin-left: 10px; font-size: 13px; color: #666;">Find trending keywords</span>
+                </div>
+                
+                <div class="control-group">
+                    <label class="control-label">Quick Suggestions</label>
+                    <button class="creativity-btn" id="quickSuggestBtn" style="width: 100%;">Get Creative Ideas</button>
+                </div>
+            </div>
+        </div>
+
+        <button class="generate-btn" id="generateBtn">
+            ✨ Generate Keywords
+        </button>
+
+        <div class="results" id="results">
+            <div class="results-header">
+                Generated Keywords
+                <button class="copy-btn" id="copyBtn">📋 Copy All</button>
+            </div>
+            <div class="results-content" id="resultsContent">
+                <!-- Results will be populated here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000/api';
+        let creativityLevel = 'high';
+
+        // Creativity level selection
+        document.querySelectorAll('.creativity-btn[data-level]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.creativity-btn[data-level]').forEach(b => 
+                    b.classList.remove('active'));
+                btn.classList.add('active');
+                creativityLevel = btn.dataset.level;
+            });
+        });
+
+        // Quick suggestions button
+        document.getElementById('quickSuggestBtn').addEventListener('click', async () => {
+            const topic = document.getElementById('topicInput').value.trim();
+            if (!topic) {
+                alert('Please enter a topic first');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/creative-suggestions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topic, count: 15 })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    displayCreativeSuggestions(data.suggestions);
+                }
+            } catch (error) {
+                console.error('Error fetching suggestions:', error);
+            }
+        });
+
+        // Generate keywords
+        document.getElementById('generateBtn').addEventListener('click', async () => {
+            const topic = document.getElementById('topicInput').value.trim();
+            if (!topic) {
+                alert('Please describe your topic first');
+                return;
+            }
+
+            const generateBtn = document.getElementById('generateBtn');
+            const results = document.getElementById('results');
+            const resultsContent = document.getElementById('resultsContent');
+
+            // Show loading state
+            generateBtn.disabled = true;
+            generateBtn.textContent = '🤔 Generating...';
+            results.classList.add('show');
+            resultsContent.innerHTML = '<div class="loading">AI is thinking</div>';
+
+            try {
+                const response = await fetch(`${API_URL}/generate-keywords`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        topic_description: topic,
+                        use_search: document.getElementById('webSearch').checked,
+                        creativity_level: creativityLevel
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    resultsContent.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultsContent.innerHTML = `<div class="error">Failed to connect to server. Make sure the backend is running at ${API_URL}</div>`;
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = '✨ Generate Keywords';
+            }
+        });
+
+        // Display creative suggestions
+        function displayCreativeSuggestions(suggestions) {
+            const resultsContent = document.getElementById('resultsContent');
+            const results = document.getElementById('results');
+            results.classList.add('show');
+
+            let html = '';
+            const categories = {
+                variations: '🔤 Word Variations',
+                combinations: '🔗 Word Combinations',
+                styled: '🎨 Styled Words',
+                acronyms: '🔡 Acronyms',
+                blends: '🌀 Word Blends'
+            };
+
+            for (const [key, title] of Object.entries(categories)) {
+                if (suggestions[key] && suggestions[key].length > 0) {
+                    html += `
+                        <div class="keyword-section">
+                            <div class="keyword-category">${title}</div>
+                            <div class="keyword-list">
+                                ${suggestions[key].map(word => 
+                                    `<span class="keyword-tag">${word}</span>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+
+            resultsContent.innerHTML = html;
+        }
+
+        // Display full results
+        function displayResults(data) {
+            const resultsContent = document.getElementById('resultsContent');
+            
+            let html = '';
+
+            // AI Generated Keywords
+            html += `
+                <div class="keyword-section">
+                    <div class="keyword-category">🤖 AI-Generated Keywords</div>
+                    <div class="ai-keywords">${data.keywords}</div>
+                </div>
+            `;
+
+            // Creative suggestions if available
+            if (data.creative_suggestions) {
+                const categories = {
+                    variations: '🔤 Word Variations',
+                    combinations: '🔗 Word Combinations',
+                    styled: '🎨 Styled Words',
+                    acronyms: '🔡 Acronyms',
+                    blends: '🌀 Word Blends'
+                };
+
+                for (const [key, title] of Object.entries(categories)) {
+                    const items = data.creative_suggestions[key];
+                    if (items && items.length > 0) {
+                        html += `
+                            <div class="keyword-section">
+                                <div class="keyword-category">${title}</div>
+                                <div class="keyword-list">
+                                    ${items.map(word => 
+                                        `<span class="keyword-tag">${word}</span>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+            }
+
+            resultsContent.innerHTML = html;
+        }
+
+        // Copy all keywords
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const content = document.getElementById('resultsContent').innerText;
+            navigator.clipboard.writeText(content).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = '✅ Copied!';
+                setTimeout(() => {
+                    btn.textContent = '📋 Copy All';
+                }, 2000);
+            });
+        });
+
+        // Enter to generate (Ctrl+Enter)
+        document.getElementById('topicInput').addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                document.getElementById('generateBtn').click();
+            }
+        });
+    </script>
+</body>
+</html>

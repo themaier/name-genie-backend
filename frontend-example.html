@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrewAI Frontend Example</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 15px;
+        }
+
+        .agent-roles {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .role-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .role-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .role-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .prompt-sections {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .section-btn {
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            background: white;
+            color: #666;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+            text-align: left;
+        }
+
+        .section-btn.active {
+            border-color: #667eea;
+            background: #f0f4ff;
+            color: #667eea;
+        }
+
+        .section-btn:hover {
+            border-color: #667eea;
+        }
+
+        .prompt-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        .prompt-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-container input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            flex: 1;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result-container.show {
+            display: block;
+        }
+
+        .result-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .result-content {
+            color: #555;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            font-style: italic;
+        }
+
+        .error {
+            color: #dc3545;
+            padding: 15px;
+            background: #ffe5e5;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 CrewAI Assistant</h1>
+
+        <div class="section">
+            <div class="section-title">Select Agent Role</div>
+            <div class="agent-roles" id="agentRoles">
+                <button class="role-btn active" data-role="researcher">🔍 Researcher</button>
+                <button class="role-btn" data-role="analyst">📊 Analyst</button>
+                <button class="role-btn" data-role="writer">✍️ Writer</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Customize Response Style</div>
+            <div class="prompt-sections" id="promptSections">
+                <!-- Will be populated dynamically -->
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Your Question</div>
+            <textarea 
+                class="prompt-input" 
+                id="userInput" 
+                placeholder="Ask me anything..."
+            ></textarea>
+        </div>
+
+        <div class="controls">
+            <div class="checkbox-container">
+                <input type="checkbox" id="useTools" checked>
+                <label for="useTools">Enable Web Search</label>
+            </div>
+            <div class="checkbox-container">
+                <input type="checkbox" id="multiAgent">
+                <label for="multiAgent">Multi-Agent Mode</label>
+            </div>
+            <button class="submit-btn" id="submitBtn">Execute</button>
+        </div>
+
+        <div class="result-container" id="resultContainer">
+            <div class="result-title">Response:</div>
+            <div class="result-content" id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000/api';
+        
+        let selectedRole = 'researcher';
+        let selectedSections = [];
+        let availableSections = [];
+
+        // Initialize
+        async function init() {
+            await loadAvailableSections();
+            setupEventListeners();
+        }
+
+        // Load available sections from API
+        async function loadAvailableSections() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/sections`);
+                const data = await response.json();
+                availableSections = data.sections;
+                renderPromptSections();
+            } catch (error) {
+                console.error('Failed to load sections:', error);
+            }
+        }
+
+        // Render prompt section buttons
+        function renderPromptSections() {
+            const container = document.getElementById('promptSections');
+            container.innerHTML = '';
+
+            availableSections.forEach(section => {
+                const btn = document.createElement('button');
+                btn.className = 'section-btn';
+                btn.dataset.section = section.key;
+                btn.textContent = section.name;
+                btn.title = section.description;
+                btn.onclick = () => toggleSection(section.key, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        // Toggle section selection
+        function toggleSection(sectionKey, btnElement) {
+            const index = selectedSections.indexOf(sectionKey);
+            if (index > -1) {
+                selectedSections.splice(index, 1);
+                btnElement.classList.remove('active');
+            } else {
+                selectedSections.push(sectionKey);
+                btnElement.classList.add('active');
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Agent role buttons
+            document.querySelectorAll('.role-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedRole = btn.dataset.role;
+                });
+            });
+
+            // Submit button
+            document.getElementById('submitBtn').addEventListener('click', executePrompt);
+
+            // Enter key in textarea
+            document.getElementById('userInput').addEventListener('keydown', (e) => {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    executePrompt();
+                }
+            });
+        }
+
+        // Execute the prompt
+        async function executePrompt() {
+            const userInput = document.getElementById('userInput').value.trim();
+            if (!userInput) {
+                alert('Please enter a question or prompt.');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            const resultContainer = document.getElementById('resultContainer');
+            const resultContent = document.getElementById('resultContent');
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processing...';
+            resultContainer.classList.add('show');
+            resultContent.innerHTML = '<div class="loading">🤔 Thinking...</div>';
+
+            const requestData = {
+                user_input: userInput,
+                agent_role: selectedRole,
+                selected_sections: selectedSections,
+                use_tools: document.getElementById('useTools').checked,
+                multi_agent: document.getElementById('multiAgent').checked
+            };
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/execute`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    resultContent.textContent = data.result;
+                } else {
+                    resultContent.innerHTML = `<div class="error">Error: ${data.error}</div>`;
+                }
+            } catch (error) {
+                resultContent.innerHTML = `<div class="error">Failed to connect to server. Make sure the backend is running on ${API_BASE_URL}</div>`;
+                console.error('Error:', error);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Execute';
+            }
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>
